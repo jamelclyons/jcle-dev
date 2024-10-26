@@ -1,0 +1,69 @@
+services:
+  mysql:
+    container_name: mysql-db-jcle
+    image: mysql:latest
+    volumes:
+      - dev_mysql:/var/lib/mysql
+    restart: always
+    ports:
+      - ${MYSQL_PORT}:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    networks:
+      - j.c.lyons_enterprises
+      - seven_tech
+      - orb
+
+  redis-session:
+    container_name: redis-session-jcle
+    image: "redis/redis-stack:edge"
+    restart: always
+    volumes:
+      - ./redis/data:/data
+    ports:
+      - 6379:6379
+    networks:
+      - j.c.lyons_enterprises
+      - seven_tech
+      - orb
+
+  server:
+    container_name: nginx-server-jcle
+    image: nginx:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./nginx/secure.conf:/etc/nginx/secure.conf
+      - ./nginx/wordpress.conf:/etc/nginx/wordpress.conf
+      - ./nginx/templates/:/etc/nginx/templates
+      - ./nginx/ssl/certs/dhparam.pem:/etc/ssl/certs/dhparam.pem
+      - ./nginx/ssl/certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
+      - ./nginx/ssl/private/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key
+      - ./nginx/snippets/self-signed.conf:/etc/nginx/snippets/self-signed.conf
+      - ./nginx/snippets/ssl-params.conf:/etc/nginx/snippets/ssl-params.conf
+      - ./SEVEN_TECH/Development/php/wordpress:/var/www/wordpress
+    ports:
+      - ${FRONT_PORT}:80
+      - ${FRONT_PORT_SECURE}:443
+      - ${BACK_PORT}:8080
+      - ${BACK_PORT_SECURE}:8443
+    networks:
+      - j.c.lyons_enterprises
+      - seven_tech
+      - orb
+
+networks:
+  j.c.lyons_enterprises:
+    name: j.c.lyons_enterprises
+    external: true
+  seven_tech:
+    name: seven_tech
+  orb:
+    name: orb
+
+volumes:
+  dev_mysql:
+  wordpress:
+  pgdata:
