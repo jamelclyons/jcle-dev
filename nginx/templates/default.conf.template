@@ -6,33 +6,16 @@ server {
     listen 80 default_server;
     server_name ${DOMAIN_ONE};
 
-    root /var/www/wordpress;
+    include /etc/nginx/wordpress.conf;
+}
 
-    location / {
-        index index.php index.html;
-        try_files $uri $uri/ /index.php$is_args$args;
-    }
+server {
+    listen 443 ssl;
+    server_name ${DOMAIN_ONE};
     
-    location /wp-json {
-        rewrite ^/wp-json/(.*?)$ /?rest_route=/$1 last;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
-        add_header Access-Control-Allow-Headers "Content-Type, Authorization";
-    }
-
-    location ~ \.php$ {
-        try_files $uri = 404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass wordpress;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param  PATH_INFO $fastcgi_path_info;
-    }
+    include /etc/nginx/wordpress.conf;
+    include /etc/nginx/secure.conf;
+    add_header X-Frame-Options SAMEORIGIN always;
 }
 
 server {
